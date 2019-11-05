@@ -1,3 +1,4 @@
+import ipaddress
 from myiputils import *
 
 
@@ -30,7 +31,16 @@ class CamadaRede:
         # TODO: Use a tabela de encaminhamento para determinar o próximo salto
         # (next_hop) a partir do endereço de destino do datagrama (dest_addr).
         # Retorne o next_hop para o dest_addr fornecido.
-        pass
+        for CIDR, hop in self.tabela:
+            if self.__is_in_cidr(CIDR, dest_addr):
+                return hop
+        return None
+
+    def __is_in_cidr(self, cidr, ip):
+        network = ipaddress.IPv4Network(cidr)
+        first, last = str(network[0]), str(network[-1])
+        ip, first, last = str2addr(ip), str2addr(first), str2addr(last)
+        return ip >= first and ip <= last
 
     def definir_endereco_host(self, meu_endereco):
         """
@@ -50,6 +60,7 @@ class CamadaRede:
         """
         # TODO: Guarde a tabela de encaminhamento. Se julgar conveniente,
         # converta-a em uma estrutura de dados mais eficiente.
+        self.tabela = tabela
         pass
 
     def registrar_recebedor(self, callback):
