@@ -31,10 +31,26 @@ class CamadaRede:
         # TODO: Use a tabela de encaminhamento para determinar o próximo salto
         # (next_hop) a partir do endereço de destino do datagrama (dest_addr).
         # Retorne o next_hop para o dest_addr fornecido.
+        compatible_cidrs = []
         for CIDR, hop in self.tabela:
             if self.__is_in_cidr(CIDR, dest_addr):
-                return hop
-        return None
+                compatible_cidrs.append((CIDR, hop))
+        if len(compatible_cidrs) == 0:
+            return None
+        elif len(compatible_cidrs) > 1:
+            return self.__select_best_hop(compatible_cidrs)
+        else:
+            return compatible_cidrs.pop()[1]
+
+    def __select_best_hop(self, cidr_list):
+        largest_range = int(cidr_list[0][0].split('/')[1])
+        best_hop = cidr_list[0][1]
+        for cidr, hop in cidr_list:
+            range = int(cidr.split('/')[1])
+            if range > largest_range:
+                largest_range = range
+                best_hop = hop
+        return best_hop
 
     def __is_in_cidr(self, cidr, ip):
         network = ipaddress.IPv4Network(cidr)
